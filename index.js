@@ -1,7 +1,7 @@
-import { SHEETDB_API } from './config.js';
+// import { SHEETDB_API } from './config.js';
 
 let myInfo = null;
-
+const SHEETDB_API = "https://sheetdb.io/api/v1/ik969ith0zja0";
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         const data = await getInitialData();
