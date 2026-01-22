@@ -96,3 +96,12 @@ async function submitData() {
     alert("출석 저장 완료!");
     loadMembers();
 }
+
+const head = document.querySelector('.head');
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 0) {
+        head.classList.add('scrolled');
+    } else {
+        head.classList.remove('scrolled');
+    }
+});

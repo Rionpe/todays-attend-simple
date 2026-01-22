@@ -1,6 +1,6 @@
 html {
     -webkit-text-size-adjust: 100%;
-    font-size: 20px;
+    font-size: 16px;
 }
 
 #form {
@@ -20,7 +20,7 @@ body {
 
 /* 헤더 */
 header {
-    font-size: 1.6rem;
+    font-size: 1rem;
     font-weight: 800;
     border: 0;
     color: rgb(var(--ig-primary-text));
@@ -38,11 +38,10 @@ header {
     display: flex;
     justify-content: space-between;
     width: 100%;
-    height: 70px; /* 높게 */
+    height: 50px; /* 높게 */
     position: sticky;
     top: 0;
     background-color: #fff;
-    padding: 0 16px;
     box-sizing: border-box;
 }
 
@@ -55,6 +54,8 @@ header {
 /* 컨테이너 여백 */
 .container {
     margin: 0 auto;
+    max-width: 600px;
+    box-sizing: border-box;
 }
 
 .select-wrap {
@@ -79,7 +80,7 @@ select {
     width: 100%;
     padding: 1rem 2.75rem 1rem 1rem;
     font-size: 1rem;
-    border: 1px solid #ffffff;
+    border: 0;
     background: #fff;
     appearance: none;
     min-height: 44px;
@@ -104,14 +105,12 @@ select {
 /* 라디오 그룹 */
 .radio-group {
     display: flex;
+    flex-wrap: wrap;
     gap: 12px;
-    margin-bottom: 16px;
 }
 
 .radio-group label {
-    flex: 1;
     text-align: center;
-    padding: 20px 0;
     border-radius: 12px;
     border: 1px solid #ddd;
     font-size: 1.2rem;
@@ -121,12 +120,19 @@ select {
     justify-content: center;
     align-items: center;
     transition: all 0.2s;
+    flex: 1 1 45%;
+    min-width: 120px;
 }
 
 .radio-group input:checked + span {
     background: #3182f6;
     color: #fff;
     border-color: #3182f6;
+    width: 100%;
+    display: block;
+    text-align: center;
+    border-radius: 12px;
+    box-sizing: border-box;
 }
 
 .radio-group input {
@@ -160,8 +166,8 @@ input, textarea, select {
 /* 제출 버튼 */
 .submit-btn {
     width: 100%;
-    padding: 2rem;
-    font-size: 1.3rem;
+    padding: 1rem;
+    font-size: 1rem;
     font-weight: 600;
     border: none;
     background: #3182f6;
@@ -187,6 +193,6 @@ input, textarea, select {
     flex: 1;
     height: 100%;
     justify-content: start;
-    padding-left: clamp(8px, 3vw, 16px);
+    padding: 0 16px;
     align-items: center;
 }
