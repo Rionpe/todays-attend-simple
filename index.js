@@ -212,10 +212,16 @@ function handleCredentialResponse(response) {
     initAppWithEmail(payload.email);
 }
 
-window.onload = () => {
+function initGSI() {
+    if (!window.google?.accounts?.id) {
+        console.error("GSI 스크립트가 아직 로드되지 않았습니다!");
+        return;
+    }
+
     google.accounts.id.initialize({
         client_id: "382344058312-btj96hfuq3665e93evgaguhh14non63j.apps.googleusercontent.com",
-        callback: handleCredentialResponse
+        callback: handleCredentialResponse,
+        auto_select: true
     });
 
     google.accounts.id.renderButton(
@@ -223,9 +229,10 @@ window.onload = () => {
         { theme: "outline", size: "large" }
     );
 
-    google.accounts.id.prompt();
+    google.accounts.id.prompt(); // 자동 로그인 시도
 }
 
+window.addEventListener("load", initGSI);
 
 window.addEventListener('DOMContentLoaded', () => {
     const sel = document.getElementById("groups");
