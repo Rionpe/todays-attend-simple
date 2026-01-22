@@ -1,1 +1,0 @@
-export const SHEETDB_API = "https://sheetdb.io/api/v1/ik969ith0zja0";
