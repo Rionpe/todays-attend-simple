@@ -1,0 +1,192 @@
+html {
+    -webkit-text-size-adjust: 100%;
+    font-size: 20px;
+}
+
+#form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+    margin: 0;
+    background: #f5f6f8;
+    color: #222;
+    background: #fff;
+}
+
+/* 헤더 */
+header {
+    font-size: 1.6rem;
+    font-weight: 800;
+    border: 0;
+    color: rgb(var(--ig-primary-text));
+    margin: 0;
+    min-width: 0;
+    overflow: visible;
+    text-overflow: ellipsis;
+    vertical-align: baseline;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.head {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    height: 70px; /* 높게 */
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+.head.scrolled {
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05),
+    0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+
+/* 컨테이너 여백 */
+.container {
+    margin: 0 auto;
+}
+
+.select-wrap {
+    position: relative;
+    flex: 1;
+}
+
+.select-wrap::after {
+    content: "";
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #666;
+    border-bottom: 2px solid #666;
+    transform: translateY(-60%) rotate(45deg);
+    pointer-events: none;
+}
+
+select {
+    width: 100%;
+    padding: 1rem 2.75rem 1rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #ffffff;
+    background: #fff;
+    appearance: none;
+    min-height: 44px;
+}
+
+.card {
+    width: 100%;
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+}
+
+/* 이름 표시 */
+.name {
+    ont-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+/* 라디오 그룹 */
+.radio-group {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.radio-group label {
+    flex: 1;
+    text-align: center;
+    padding: 20px 0;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    font-size: 1.2rem;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.radio-group input:checked + span {
+    background: #3182f6;
+    color: #fff;
+    border-color: #3182f6;
+}
+
+.radio-group input {
+    display: none;
+}
+
+.radio-group span {
+    display: block;
+    border-radius: 12px;
+    padding: 16px 0;
+}
+
+/* 결석 사유 / 비고 */
+.reason, .remark {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    margin-top: 8px;
+    box-sizing: border-box;
+    font-size: 16px;
+    min-height: 44px;
+    min-width: 300px;
+    touch-action: none;
+}
+
+input, textarea, select {
+    font-size: 16px;
+}
+
+/* 제출 버튼 */
+.submit-btn {
+    width: 100%;
+    padding: 2rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    border: none;
+    background: #3182f6;
+    color: #fff;
+    position: sticky;
+    bottom: 0;
+    margin: 0;
+}
+
+.submit-btn:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+}
+
+.attendance-date {
+    font-size: 0.85rem;
+    padding-left: 1rem;
+    flex: 1;
+}
+
+.title-wrap {
+    display: flex;
+    flex: 1;
+    height: 100%;
+    justify-content: start;
+    padding-left: clamp(8px, 3vw, 16px);
+    align-items: center;
+}
