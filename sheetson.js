@@ -134,12 +134,9 @@ function handleCredentialResponse(response) {
     const payload = JSON.parse(atob(jwt.split('.')[1]));
     console.log("로그인 이메일:", payload.email);
 
-    // 로그인 성공 → 화면 표시
-    document.getElementById("loginSection").style.display = "none";
-    document.getElementById("attendanceSection").style.display = "block";
+    localStorage.setItem("email", payload.email);
 
-    // 이메일로 앱 초기화
-    initAppWithEmail(payload.email);
+    showAttendanceSection(payload.email);
 }
 
 function initGSI() {
@@ -162,7 +159,24 @@ function initGSI() {
     google.accounts.id.prompt();
 }
 
-window.addEventListener("load", initGSI);
+
+function showAttendanceSection(email) {
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("attendanceSection").style.display = "block";
+
+    initAppWithEmail(email);
+}
+
+window.addEventListener("load", () => {
+    const savedEmail = localStorage.getItem("email");
+
+    if (savedEmail) {
+        showAttendanceSection(savedEmail);
+    } else {
+        initGSI();
+    }
+});
+
 
 window.addEventListener('DOMContentLoaded', () => {
     // handleCredentialResponse();
