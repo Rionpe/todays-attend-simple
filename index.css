@@ -163,6 +163,9 @@ input, textarea, select {
     font-size: 16px;
 }
 
+.log-wrap{
+    padding-bottom: 4rem;
+}
 /* 제출 버튼 */
 .submit-btn {
     width: 100%;

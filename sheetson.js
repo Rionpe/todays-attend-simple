@@ -1,0 +1,298 @@
+const API_ENDPOINT = 'https://api.sheetson.com';
+const API_KEY = 'gPITCMrQ4NpBBqgJSEPM3o4qTjmEIAzNs8IP1KEI25-WL2LzR_0xiFRm13Q'; //sheetson
+const SHEET_ID = '18FBUzr_iajDrYuXs78WSX4bntxvIGCd59fRCEqk9iDQ'; // 구글 스프레드 시트 ID
+const CLIENT_ID = '382344058312-btj96hfuq3665e93evgaguhh14non63j.apps.googleusercontent.com'; // 구글 oauth 클라이언트 ID
+
+let groups,members,myInfo,sunday;
+
+function loadMembers() {
+    if (!myInfo || !members) return;
+
+    const groupId = document.getElementById("groups").value;
+    const submitBtn = document.getElementById("submitBtn");
+
+    if (!groupId) {
+        document.getElementById("form").innerHTML = "";
+        submitBtn.disabled = true;
+        return;
+    }
+
+    const membersToShow = members.filter(m => m.목장ID === groupId);
+
+    const form = document.getElementById("form");
+    form.innerHTML = membersToShow.map(mem => `
+<div class="card">
+  <div class="name">${mem.이름}</div>
+  <div class="radio-group">
+    <label><input type="radio" name="${mem.성도ID}" value="출석"><span>출석</span></label>
+    <label><input type="radio" name="${mem.성도ID}" value="결석"><span>결석</span></label>
+  </div>
+  <input class="reason" placeholder="결석 사유 (선택)" id="reason_${mem.성도ID}">
+  <input class="remark" placeholder="비고 (선택)" id="remark_${mem.성도ID}">
+</div>`).join('');
+
+    const canSubmit =
+        myInfo.isMaster ||
+        (myInfo.isLeader && groupId === myInfo.groupId);
+
+    submitBtn.disabled = !canSubmit;
+}
+
+async function getInitialData(email) {
+    const [groupsRes, membersRes] = await Promise.all([
+        getSheetData("목장"),
+        getSheetData("성도")
+    ]);
+
+    const sundayStr = getWeekSunday();
+
+    // 1️⃣ 로그인한 사용자 찾기
+    const me = membersRes.find(m => m.이메일 === email);
+    if (!me) {
+        return {
+            groups: groupsRes,
+            members: membersRes,
+            myInfo: null,
+            sunday: sundayStr
+        };
+    }
+
+    // 2️⃣ 내 목장 정보
+    const myGroup = groupsRes.find(g => g.목장ID === me.목장ID);
+
+    // 3️⃣ 마스터 계정 여부
+    const masterEmails = ["swjddbss@gmail.com", "ysmlsjlove1115@gmail.com"]; //, "dbsdndwo0224@gmail.com"
+    const isMaster = masterEmails.includes(email);
+
+    // 4️⃣ 로그인 사용자 정보
+    const myInfo = {
+        memberId: me.성도ID,
+        groupId: me.목장ID,
+        isLeader: !!myGroup,
+        isMaster,
+        email
+    };
+
+    return {
+        groups: groupsRes,
+        members: membersRes,
+        myInfo,
+        sunday: sundayStr
+    };
+}
+
+function getWeekSunday() {
+    const d = new Date();
+    d.setDate(d.getDate() - d.getDay());
+
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+
+    // const hours = String(d.getHours()).padStart(2,'0');
+    // const minutes = String(d.getMinutes()).padStart(2,'0');
+    // const seconds = String(d.getSeconds()).padStart(2,'0');
+
+    // console.log(`${yyyy}-${mm}-${dd} ${hours}:${minutes}:${seconds}`);
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+async function initAppWithEmail(email) {
+    try {
+        const data = await getInitialData(email);
+        ({ groups, members, myInfo, sunday } = data);
+
+        if (!myInfo) {
+            alert("등록된 사용자를 찾을 수 없습니다. 관리자에게 문의하세요.");
+            return;
+        }
+
+        if (data.sunday) document.getElementById("attendanceDate").innerText = sunday;
+
+        const sel = document.getElementById("groups");
+        sel.innerHTML = "";
+        groups.forEach(g => {
+            const o = document.createElement("option");
+            o.value = g.목장ID;
+            o.text = g.목장명;
+            sel.appendChild(o);
+        });
+
+        if (myInfo.groupId) {
+            sel.value = myInfo.groupId;
+            loadMembers();
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("초기 데이터 로딩 실패: " + err);
+    }
+}
+
+function handleCredentialResponse(response) {
+    const jwt = response.credential;
+    const payload = JSON.parse(atob(jwt.split('.')[1]));
+    console.log("로그인 이메일:", payload.email);
+
+    // 로그인 성공 → 화면 표시
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("attendanceSection").style.display = "block";
+
+    // 이메일로 앱 초기화
+    initAppWithEmail(payload.email);
+}
+
+function initGSI() {
+    if (!window.google?.accounts?.id) {
+        console.error("GSI 스크립트가 아직 로드되지 않았습니다!");
+        return;
+    }
+
+    google.accounts.id.initialize({
+        client_id: CLIENT_ID,
+        callback: handleCredentialResponse,
+        auto_select: true
+    });
+
+    google.accounts.id.renderButton(
+        document.querySelector(".g_id_signin"),
+        { theme: "outline", size: "large" }
+    );
+
+    google.accounts.id.prompt();
+}
+
+window.addEventListener("load", initGSI);
+
+window.addEventListener('DOMContentLoaded', () => {
+    // handleCredentialResponse();
+    const sel = document.getElementById("groups");
+    const submitBtn = document.getElementById("submitBtn");
+
+    sel.addEventListener('change', loadMembers);
+    submitBtn.addEventListener('click', submitData);
+});
+
+const head = document.querySelector('.head');
+window.addEventListener('scroll', () => {
+    head.classList.toggle('scrolled', window.scrollY > 0);
+});
+
+
+async function getSheetData(sheetName) {
+    const url = new URL(`${API_ENDPOINT}/v2/sheets/${encodeURIComponent(sheetName)}`);
+    url.searchParams.append("apiKey", API_KEY);
+    url.searchParams.append("spreadsheetId", SHEET_ID);
+    url.searchParams.append("limit", 1000);
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const data = await res.json();
+
+        return data.results || [];
+    } catch (err) {
+        console.error("데이터 가져오기 실패:", err);
+    }
+}
+
+async function submitData() {
+    if (!myInfo || !myInfo.email) {
+        alert("로그인 필요");
+        return;
+    }
+
+    const groupId = document.getElementById("groups").value;
+    const submitBtn = document.getElementById("submitBtn");
+    const statusMsg = document.getElementById("statusMsg");
+    // const logList = document.getElementById("logList");
+
+    if (!myInfo.isMaster && groupId !== myInfo.groupId) {
+        alert("본인 목장 출석만 등록할 수 있습니다.");
+        return;
+    }
+
+    const records = [];
+    const sunday = getWeekSunday();
+    const 입력자 = myInfo.email;
+
+    const now = new Date();
+    let hours = now.getHours();
+    const ampm = hours >= 12 ? "오후" : "오전";
+    hours = hours % 12 || 12;
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+    const yyyy = now.getFullYear();
+    const mm = now.getMonth() + 1;
+    const dd = now.getDate();
+    const 입력시간 = `${yyyy}. ${mm}. ${dd} ${ampm} ${hours}:${minutes}:${seconds}`;
+
+    document.querySelectorAll(".card").forEach(card => {
+        const name = card.querySelector(".name").innerText;
+        const radio = card.querySelector("input[type=radio]:checked");
+        if (!radio) return;
+
+        const memberId = radio.name;
+        const attend = radio.value;
+        const reason = document.getElementById(`reason_${memberId}`).value;
+        const remark = document.getElementById(`remark_${memberId}`).value;
+
+        records.push({
+            날짜: sunday,
+            성도명: name,
+            출석상태: attend,
+            결석사유: reason || "",
+            비고: remark || "",
+            입력자,
+            입력시간
+        });
+    });
+
+    if (!records.length) {
+        alert("출석 상태 선택 필요");
+        return;
+    }
+
+    // 1️⃣ 버튼 비활성화 & 상태 표시
+    submitBtn.disabled = true;
+    statusMsg.innerText = "데이터 전송 중…";
+
+    try {
+        await saveSheetData(records);
+
+        // 2️⃣ 성공 표시 & 로그 기록
+        statusMsg.innerText = "출석 저장 완료! ✅";
+        /*records.forEach(r => {
+            const li = document.createElement("li");
+            li.innerText = `${r.성도명} - ${r.출석상태} (${r.입력시간})`;
+            logList.appendChild(li);
+        });*/
+
+    } catch (err) {
+        console.error(err);
+        statusMsg.innerText = "출석 저장 실패 ❌";
+    } finally {
+        submitBtn.disabled = false;
+    }
+}
+
+async function saveSheetData(records) {
+    if (!records || !records.length) return;
+    try {
+        for (const record of records) {
+            await fetch(`${API_ENDPOINT}/v2/sheets/출석_원본`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${API_KEY}`,
+                    "X-Spreadsheet-Id": SHEET_ID,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(record)
+            }).then(res => res.json().then(res => console.log(res)));
+        }
+        alert("출석 저장 완료!");
+        loadMembers();
+    } catch (err) {
+        console.error("Sheetson 저장 실패:", err);
+        alert("출석 저장 실패: " + err);
+    }
+}
