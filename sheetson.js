@@ -60,7 +60,7 @@ async function getInitialData(email) {
     // 2️⃣ 내 목장 정보
     const myGroup = groupsRes.find(g => g.목장ID === me.목장ID);
 
-    // 3️⃣ 마스터 계정 여부
+    // 3️⃣ 마스터 계정
     const masterEmails = ["swjddbss@gmail.com", "ysmlsjlove1115@gmail.com"]; //, "dbsdndwo0224@gmail.com"
     const isMaster = masterEmails.includes(email);
 
@@ -129,14 +129,32 @@ async function initAppWithEmail(email) {
     }
 }
 
+function base64UrlDecode(str) {
+    // Base64Url → Base64
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    // padding 추가
+    const pad = str.length % 4;
+    if (pad) {
+        str += '='.repeat(4 - pad);
+    }
+    return atob(str);
+}
+
 function handleCredentialResponse(response) {
     const jwt = response.credential;
-    const payload = JSON.parse(atob(jwt.split('.')[1]));
-    console.log("로그인 이메일:", payload.email);
-
-    localStorage.setItem("email", payload.email);
-
-    showAttendanceSection(payload.email);
+    if (!jwt) {
+        console.error("Credential이 없습니다", response);
+        return;
+    }
+    try {
+        const payload = JSON.parse(base64UrlDecode(jwt.split('.')[1]));
+        console.log("로그인 이메일:", payload.email);
+        localStorage.setItem("email", payload.email);
+        showAttendanceSection(payload.email);
+    } catch (err) {
+        console.error("JWT decode 실패", err);
+        alert("로그인 데이터가 올바르지 않습니다.");
+    }
 }
 
 function initGSI() {
