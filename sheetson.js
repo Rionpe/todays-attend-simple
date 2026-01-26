@@ -1,4 +1,4 @@
-import * as Common from '../common.js';
+import * as Common from './common.js';
 
 const API_ENDPOINT = 'https://api.sheetson.com';
 const API_KEY = 'gPITCMrQ4NpBBqgJSEPM3o4qTjmEIAzNs8IP1KEI25-WL2LzR_0xiFRm13Q'; //sheetson
