@@ -65,7 +65,7 @@ export function handleCredentialResponse(response) {
 }
 
 export async function getSheetData(sheetName, limit = 1000, where = {}, order = '') {
-    let url = `${API_ENDPOINT}/v2/sheets/${encodeURIComponent(sheetName)}?apiKey=${API_KEY}&spreadsheetId=${SHEET_ID}&limit=${limit}`;
+    let url = `${API_ENDPOINT}/v2/sheets/${encodeURIComponent(sheetName)}?apiKey=${API_KEY}&spreadsheetId=${SHEET_ID}&limit=${limit}&_=${Date.now()}`;
 
     if (where && Object.keys(where).length) {
         // encodeURIComponent 한 번만

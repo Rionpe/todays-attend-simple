@@ -19,7 +19,6 @@ async function loadAttendance() {
 
     const order = '-입력시간,-날짜';
     const list = await Common.getSheetData("출석_조회(읽기전용)", 20, where, order);
-
     const filtered = list.filter(l => {
         if (!l.날짜) return false;
 
