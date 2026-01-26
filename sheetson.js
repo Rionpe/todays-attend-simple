@@ -1,10 +1,5 @@
 import * as Common from './common.js';
 
-const API_ENDPOINT = 'https://api.sheetson.com';
-const API_KEY = 'gPITCMrQ4NpBBqgJSEPM3o4qTjmEIAzNs8IP1KEI25-WL2LzR_0xiFRm13Q'; //sheetson
-const SHEET_ID = '18FBUzr_iajDrYuXs78WSX4bntxvIGCd59fRCEqk9iDQ'; // 구글 스프레드 시트 ID
-const CLIENT_ID = '382344058312-btj96hfuq3665e93evgaguhh14non63j.apps.googleusercontent.com'; // 구글 oauth 클라이언트 ID
-
 let groups,members,myInfo,sunday;
 
 function loadMembers() {
@@ -218,11 +213,11 @@ async function saveSheetData(records) {
     if (!records || !records.length) return;
     try {
         for (const record of records) {
-            await fetch(`${API_ENDPOINT}/v2/sheets/출석_원본`, {
+            await fetch(`${window.API_ENDPOINT}/v2/sheets/출석_원본`, {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${API_KEY}`,
-                    "X-Spreadsheet-Id": SHEET_ID,
+                    "Authorization": `Bearer ${window.API_KEY}`,
+                    "X-Spreadsheet-Id": window.SHEET_ID,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify(record)
