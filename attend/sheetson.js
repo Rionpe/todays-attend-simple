@@ -45,7 +45,6 @@ async function getInitialData(email) {
         Common.getSheetData("목장", 100),
         Common.getSheetData("성도", 1000)
     ]);
-    console.log(groupsRes, membersRes)
     const sundayStr = Common.getWeekSunday();
 
     // 1️⃣ 로그인한 사용자 찾기
@@ -227,7 +226,7 @@ async function saveSheetData(records) {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify(record)
-            }).then(res => res.json().then(res => console.log(res)));
+            }).then(res => res.json());
         }
         alert("출석 저장 완료!");
         loadMembers();
