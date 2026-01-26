@@ -84,6 +84,8 @@ window.addEventListener("load", () => {
         myEmail = savedEmail;
         showSection();
     } else {
-        Common.initGSI();
+        Common.initGSI(() => {
+            showSection();
+        });
     }
 });

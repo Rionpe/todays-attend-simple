@@ -117,7 +117,6 @@ function showSection(email) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    // handleCredentialResponse();
     const sel = document.getElementById("groups");
     const submitBtn = document.getElementById("submitBtn");
 
@@ -236,6 +235,8 @@ window.addEventListener("load", () => {
     if (savedEmail) {
         showSection(savedEmail);
     } else {
-        Common.initGSI();
+        Common.initGSI((email) => {
+            showSection(email);
+        });
     }
 });

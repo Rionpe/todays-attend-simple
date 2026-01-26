@@ -1,5 +1,7 @@
 window.CLIENT_ID = '382344058312-btj96hfuq3665e93evgaguhh14non63j.apps.googleusercontent.com'; // 구글 oauth 클라이언트 ID OAUTH_CLIENT_ID
 
+let onLoginSuccess = null;
+
 function base64UrlDecode(str) {
     str = str.replace(/-/g, '+').replace(/_/g, '/');
     const pad = str.length % 4;
@@ -25,11 +27,14 @@ export function getWeekSunday() {
     return `${yyyy}-${mm}-${dd}`;
 }
 
-export function initGSI() {
+export function initGSI(callback) {
     if (!window.google?.accounts?.id) {
         console.error("GSI 스크립트가 아직 로드되지 않았습니다!");
         return;
     }
+
+    // 로그인 성공 시 호출할 함수 저장
+    onLoginSuccess = callback;
 
     google.accounts.id.initialize({
         client_id: CLIENT_ID,
@@ -51,15 +56,20 @@ export function handleCredentialResponse(response) {
         console.error("Credential이 없습니다", response);
         return;
     }
+
     try {
         const payload = JSON.parse(base64UrlDecode(jwt.split('.')[1]));
         localStorage.setItem("email", payload.email);
-        showSection(payload.email);
+
+        if (typeof onLoginSuccess === "function") {
+            onLoginSuccess(payload.email);
+        }
     } catch (err) {
         console.error("JWT decode 실패", err);
         alert("로그인 데이터가 올바르지 않습니다.");
     }
 }
+
 
 export async function getSheetData(sheetName, limit = 1000, where = {}, order = '') {
     const params = new URLSearchParams({
