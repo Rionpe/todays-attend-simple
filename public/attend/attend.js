@@ -1,4 +1,4 @@
-import * as Common from './common.js';
+import * as Common from '../common.js';
 
 let groups,members,myInfo,sunday;
 
@@ -40,6 +40,7 @@ async function getInitialData(email) {
         Common.getSheetData("목장", 100),
         Common.getSheetData("성도", 1000)
     ]);
+
     const sundayStr = Common.getWeekSunday();
 
     // 1️⃣ 로그인한 사용자 찾기
@@ -191,45 +192,43 @@ async function submitData() {
     statusMsg.innerText = "데이터 전송 중…";
 
     try {
-        await saveSheetData(records);
-
-        // 2️⃣ 성공 표시 & 로그 기록
+        await Common.saveSheetData("출석_원본", records);
         statusMsg.innerText = "출석 저장 완료! ✅";
-        /*records.forEach(r => {
-            const li = document.createElement("li");
-            li.innerText = `${r.성도명} - ${r.출석상태} (${r.입력시간})`;
-            logList.appendChild(li);
-        });*/
+        alert("출석 저장 완료! ✅");
 
     } catch (err) {
         console.error(err);
         statusMsg.innerText = "출석 저장 실패 ❌";
+        alert("출석 저장 실패 ❌");
     } finally {
         submitBtn.disabled = false;
     }
 }
 
-async function saveSheetData(records) {
-    if (!records || !records.length) return;
-    try {
-        for (const record of records) {
-            await fetch(`${window.API_ENDPOINT}/v2/sheets/출석_원본`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${window.API_KEY}`,
-                    "X-Spreadsheet-Id": window.SHEET_ID,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(record)
-            }).then(res => res.json());
-        }
-        alert("출석 저장 완료!");
-        loadMembers();
-    } catch (err) {
-        console.error("Sheetson 저장 실패:", err);
-        alert("출석 저장 실패: " + err);
-    }
-}
+
+
+// async function saveSheetData(sheetName, record) {
+    //
+    // if (!records || !records.length) return;
+    // try {
+    //     for (const record of records) {
+    //         await fetch(`${window.API_ENDPOINT}/v2/sheets/출석_원본`, {
+    //             method: "POST",
+    //             headers: {
+    //                 "Authorization": `Bearer ${window.API_KEY}`,
+    //                 "X-Spreadsheet-Id": window.SHEET_ID,
+    //                 "Content-Type": "application/json"
+    //             },
+    //             body: JSON.stringify(record)
+    //         }).then(res => res.json());
+    //     }
+    //     alert("출석 저장 완료!");
+    //     loadMembers();
+    // } catch (err) {
+    //     console.error("Sheetson 저장 실패:", err);
+    //     alert("출석 저장 실패: " + err);
+    // }
+// }
 
 window.addEventListener("load", () => {
     const savedEmail = localStorage.getItem("email");
@@ -237,6 +236,6 @@ window.addEventListener("load", () => {
     if (savedEmail) {
         showSection(savedEmail);
     } else {
-        initGSI();
+        Common.initGSI();
     }
 });

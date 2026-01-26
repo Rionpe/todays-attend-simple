@@ -1,7 +1,4 @@
-window.API_ENDPOINT = 'https://api.sheetson.com';
-window.API_KEY = 'gPITCMrQ4NpBBqgJSEPM3o4qTjmEIAzNs8IP1KEI25-WL2LzR_0xiFRm13Q'; //sheetson
-window.SHEET_ID = '18FBUzr_iajDrYuXs78WSX4bntxvIGCd59fRCEqk9iDQ'; // 구글 스프레드 시트 ID
-window.CLIENT_ID = '382344058312-btj96hfuq3665e93evgaguhh14non63j.apps.googleusercontent.com'; // 구글 oauth 클라이언트 ID
+window.CLIENT_ID = '382344058312-btj96hfuq3665e93evgaguhh14non63j.apps.googleusercontent.com'; // 구글 oauth 클라이언트 ID OAUTH_CLIENT_ID
 
 function base64UrlDecode(str) {
     str = str.replace(/-/g, '+').replace(/_/g, '/');
@@ -65,23 +62,34 @@ export function handleCredentialResponse(response) {
 }
 
 export async function getSheetData(sheetName, limit = 1000, where = {}, order = '') {
-    let url = `${API_ENDPOINT}/v2/sheets/${encodeURIComponent(sheetName)}?apiKey=${API_KEY}&spreadsheetId=${SHEET_ID}&limit=${limit}&_=${Date.now()}`;
+    const params = new URLSearchParams({
+        sheetName,
+        limit,
+        ...(Object.keys(where).length && { where: JSON.stringify(where) }),
+        ...(order && { order })
+    });
 
-    if (where && Object.keys(where).length) {
-        // encodeURIComponent 한 번만
-        url += `&where=${encodeURIComponent(JSON.stringify(where))}`;
-    }
-
-    if (order) {
-        url += `&order=${order}`;
-    }
-
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    return data.results || [];
+    const res = await fetch(`/api/sheetson?${params.toString()}`);
+    if (!res.ok) throw new Error(res.statusText);
+    return await res.json();
 }
 
+export async function saveSheetData(sheetName, records) {
+    const responses = await Promise.all(
+        records.map(row =>
+            fetch("/api/sheetson", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sheetName, record: row })
+            })
+        )
+    );
 
+    const failed = responses.find(r => !r.ok);
+    if (failed) {
+        const errorData = await failed.json();
+        throw new Error(`Sheetson 저장 실패: ${JSON.stringify(errorData)}`);
+    }
 
-
+    return Promise.all(responses.map(r => r.json()));
+}
