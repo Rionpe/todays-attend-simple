@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>출석 관리</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .head { position: sticky; top: 0; background: #fff; padding: 10px; box-shadow: 0 0 0 #000; transition: box-shadow 0.2s; }
+        .head.scrolled { box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .card { border: 1px solid #ccc; padding: 10px; margin: 5px 0; }
+    </style>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://accounts.google.com/gsi/oauth2.js" async defer></script>
+</head>
+<body>
+
+<div class="head">
+    <div id="loginSection">
+        <div class="g_id_signin"></div>
+        <button id="getTokenBtn" disabled>Sheets 접근 허용</button>
+    </div>
+    <div id="attendanceSection" style="display:none;">
+        <p>출석일: <span id="attendanceDate"></span></p>
+        <select id="groups"></select>
+        <div id="form"></div>
+        <button id="submitBtn" disabled>저장</button>
+    </div>
+</div>
+
+<script>
+    const RANGE = "목장"; // 시트명!범위 목장!A1:G
+    const SHEET_ID = "18FBUzr_iajDrYuXs78WSX4bntxvIGCd59fRCEqk9iDQ/edit?pli=1&gid=821494766#gid=821494766";
+    const CLIENT_ID = "382344058312-btj96hfuq3665e93evgaguhh14non63j.apps.googleusercontent.com";
+    const API_KEY = "AIzaSyCMtN5Rr4BU_IRubc9JL0tnPosiHNI0dTM";
+
+    let token = null;   // OAuth2 액세스 토큰
+    let email = null;   // 로그인한 사용자 이메일
+    let groups=[], members=[], myInfo={};
+
+    // --- Google Sheets API 호출 ---
+    async function getSheetData(range, token) {
+        const res = await fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}`,
+            { headers: { "Authorization": `Bearer ${token}` } }
+        );
+        const data = await res.json();
+        console.log(data)
+        return data.values || [];
+    }
+
+    async function appendSheetData(range, records, token) {
+        const values = records.map(r => Object.values(r));
+        const res = await fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED`,
+            {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ values })
+            }
+        );
+        return res.json();
+    }
+
+    // --- 앱 초기화 ---
+    async function initAppWithEmail(userEmail, token) {
+        email = userEmail;
+
+        const groupsRes = await getSheetData("목장!A1:G100", token);
+        const membersRes = await getSheetData("성도!A1:G100", token);
+        groups = groupsRes.slice(1).map(r => ({ 목장ID: r[0], 목장명: r[1] }));
+        members = membersRes.slice(1).map(r => ({ 성도ID: r[0], 이름: r[1], 이메일: r[2], 목장ID: r[3] }));
+
+        // 내 정보
+        const me = members.find(m => m.이메일 === email);
+        if(!me) { alert("사용자 정보 없음"); return; }
+        myInfo = { memberId: me.성도ID, groupId: me.목장ID, isMaster: false, email };
+
+        document.getElementById("attendanceDate").innerText = getWeekSunday();
+
+        const sel = document.getElementById("groups");
+        sel.innerHTML = "";
+        groups.forEach(g=>{
+            const o = document.createElement("option");
+            o.value = g.목장ID; o.text = g.목장명;
+            sel.appendChild(o);
+        });
+        sel.value = myInfo.groupId;
+        loadMembers();
+    }
+
+    // --- 멤버 렌더링 ---
+    function loadMembers() {
+        const groupId = document.getElementById("groups").value;
+        const form = document.getElementById("form");
+        const submitBtn = document.getElementById("submitBtn");
+
+        const membersToShow = members.filter(m => m.목장ID === groupId);
+        form.innerHTML = membersToShow.map(mem => `
+<div class="card">
+  <div class="name">${mem.이름}</div>
+  <div class="radio-group">
+    <label><input type="radio" name="${mem.성도ID}" value="출석">출석</label>
+    <label><input type="radio" name="${mem.성도ID}" value="결석">결석</label>
+  </div>
+  <input placeholder="결석 사유" id="reason_${mem.성도ID}">
+  <input placeholder="비고" id="remark_${mem.성도ID}">
+</div>
+`).join('');
+
+        submitBtn.disabled = false;
+    }
+
+    // --- 출석 제출 ---
+    async function submitData() {
+        const groupId = document.getElementById("groups").value;
+        const records = [];
+        const sunday = getWeekSunday();
+        const 입력자 = email;
+
+        document.querySelectorAll(".card").forEach(card=>{
+            const name = card.querySelector(".name").innerText;
+            const radio = card.querySelector("input[type=radio]:checked");
+            if(!radio) return;
+            const memberId = radio.name;
+            const attend = radio.value;
+            const reason = document.getElementById(`reason_${memberId}`).value;
+            const remark = document.getElementById(`remark_${memberId}`).value;
+            records.push({ 날짜:sunday, 성도명:name, 출석상태:attend, 결석사유:reason||"", 비고:remark||"", 입력자, 입력시간:new Date().toLocaleString() });
+        });
+
+        if(!records.length) { alert("선택된 출석이 없습니다"); return; }
+
+        await appendSheetData("출석_원본!A1:G1", records, token);
+        alert("출석 저장 완료!");
+    }
+
+    // --- Helper ---
+    function getWeekSunday() {
+        const d = new Date();
+        d.setDate(d.getDate() - d.getDay());
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    // --- GSI 로그인 처리 ---
+    function handleCredentialResponse(response) {
+        const payload = JSON.parse(atob(response.credential.split('.')[1]));
+        console.log("로그인:", payload.email);
+
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("attendanceSection").style.display = "block";
+
+        // OAuth2 토큰 버튼 활성화
+        document.getElementById("getTokenBtn").disabled = false;
+
+        // 토큰 발급
+        const client = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: 'https://www.googleapis.com/auth/spreadsheets',
+            callback: async (tokenResponse) => {
+                token = tokenResponse.access_token;
+                console.log(token)
+                // await initAppWithEmail(payload.email, token);
+            }
+        });
+
+        // document.getElementById("getTokenBtn").onclick = () => client.requestAccessToken({ prompt:"consent" });
+    }
+
+    window.onload = () => {
+        google.accounts.id.initialize({
+            client_id: CLIENT_ID,
+            callback: handleCredentialResponse
+        });
+        google.accounts.id.renderButton(document.querySelector(".g_id_signin"), { theme:"outline", size:"large" });
+    };
+    document.getElementById("groups").addEventListener('change', loadMembers);
+    document.getElementById("submitBtn").addEventListener('click', submitData);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://accounts.google.com/gsi/client"></script>
+  <link rel="stylesheet" href="view.css">
+  <title>목장 출석 확인</title>
+</head>
+<body>
+<div class="container">
+
+  <!-- 로그인 -->
+  <div id="loginSection">
+    <div class="g_id_signin"></div>
+  </div>
+
+  <!-- 목장 출석 현황 -->
+  <div id="viewSection" style="display:none;">
+    <h2>목장 출석 현황</h2>
+    <div id="groupName"></div>
+    <div id="attendanceResult"></div>
+  </div>
+
+</div>
+
+<script type="module" src="view.js"></script>
+</body>
+</html>

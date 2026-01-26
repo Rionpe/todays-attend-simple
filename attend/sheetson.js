@@ -1,3 +1,5 @@
+import * as Common from '../common.js';
+
 const API_ENDPOINT = 'https://api.sheetson.com';
 const API_KEY = 'gPITCMrQ4NpBBqgJSEPM3o4qTjmEIAzNs8IP1KEI25-WL2LzR_0xiFRm13Q'; //sheetson
 const SHEET_ID = '18FBUzr_iajDrYuXs78WSX4bntxvIGCd59fRCEqk9iDQ'; // 구글 스프레드 시트 ID
@@ -40,11 +42,11 @@ function loadMembers() {
 
 async function getInitialData(email) {
     const [groupsRes, membersRes] = await Promise.all([
-        getSheetData("목장"),
-        getSheetData("성도")
+        Common.getSheetData("목장", 100),
+        Common.getSheetData("성도", 1000)
     ]);
-
-    const sundayStr = getWeekSunday();
+    console.log(groupsRes, membersRes)
+    const sundayStr = Common.getWeekSunday();
 
     // 1️⃣ 로그인한 사용자 찾기
     const me = membersRes.find(m => m.이메일 === email);
@@ -81,22 +83,6 @@ async function getInitialData(email) {
     };
 }
 
-function getWeekSunday() {
-    const d = new Date();
-    d.setDate(d.getDate() - d.getDay());
-
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-
-    // const hours = String(d.getHours()).padStart(2,'0');
-    // const minutes = String(d.getMinutes()).padStart(2,'0');
-    // const seconds = String(d.getSeconds()).padStart(2,'0');
-
-    // console.log(`${yyyy}-${mm}-${dd} ${hours}:${minutes}:${seconds}`);
-    return `${yyyy}-${mm}-${dd}`;
-}
-
 async function initAppWithEmail(email) {
     try {
         const data = await getInitialData(email);
@@ -129,72 +115,11 @@ async function initAppWithEmail(email) {
     }
 }
 
-function base64UrlDecode(str) {
-    // Base64Url → Base64
-    str = str.replace(/-/g, '+').replace(/_/g, '/');
-    // padding 추가
-    const pad = str.length % 4;
-    if (pad) {
-        str += '='.repeat(4 - pad);
-    }
-    return atob(str);
-}
-
-function handleCredentialResponse(response) {
-    const jwt = response.credential;
-    if (!jwt) {
-        console.error("Credential이 없습니다", response);
-        return;
-    }
-    try {
-        const payload = JSON.parse(base64UrlDecode(jwt.split('.')[1]));
-        console.log("로그인 이메일:", payload.email);
-        localStorage.setItem("email", payload.email);
-        showAttendanceSection(payload.email);
-    } catch (err) {
-        console.error("JWT decode 실패", err);
-        alert("로그인 데이터가 올바르지 않습니다.");
-    }
-}
-
-function initGSI() {
-    if (!window.google?.accounts?.id) {
-        console.error("GSI 스크립트가 아직 로드되지 않았습니다!");
-        return;
-    }
-
-    google.accounts.id.initialize({
-        client_id: CLIENT_ID,
-        callback: handleCredentialResponse,
-        auto_select: true
-    });
-
-    google.accounts.id.renderButton(
-        document.querySelector(".g_id_signin"),
-        { theme: "outline", size: "large" }
-    );
-
-    google.accounts.id.prompt();
-}
-
-
-function showAttendanceSection(email) {
+function showSection(email) {
     document.getElementById("loginSection").style.display = "none";
     document.getElementById("attendanceSection").style.display = "block";
-
     initAppWithEmail(email);
 }
-
-window.addEventListener("load", () => {
-    const savedEmail = localStorage.getItem("email");
-
-    if (savedEmail) {
-        showAttendanceSection(savedEmail);
-    } else {
-        initGSI();
-    }
-});
-
 
 window.addEventListener('DOMContentLoaded', () => {
     // handleCredentialResponse();
@@ -209,23 +134,6 @@ const head = document.querySelector('.head');
 window.addEventListener('scroll', () => {
     head.classList.toggle('scrolled', window.scrollY > 0);
 });
-
-
-async function getSheetData(sheetName) {
-    const url = new URL(`${API_ENDPOINT}/v2/sheets/${encodeURIComponent(sheetName)}`);
-    url.searchParams.append("apiKey", API_KEY);
-    url.searchParams.append("spreadsheetId", SHEET_ID);
-    url.searchParams.append("limit", 1000);
-    try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const data = await res.json();
-
-        return data.results || [];
-    } catch (err) {
-        console.error("데이터 가져오기 실패:", err);
-    }
-}
 
 async function submitData() {
     if (!myInfo || !myInfo.email) {
@@ -244,7 +152,7 @@ async function submitData() {
     }
 
     const records = [];
-    const sunday = getWeekSunday();
+    const sunday = Common.getWeekSunday();
     const 입력자 = myInfo.email;
 
     const now = new Date();
@@ -328,3 +236,13 @@ async function saveSheetData(records) {
         alert("출석 저장 실패: " + err);
     }
 }
+
+window.addEventListener("load", () => {
+    const savedEmail = localStorage.getItem("email");
+
+    if (savedEmail) {
+        showSection(savedEmail);
+    } else {
+        initGSI();
+    }
+});

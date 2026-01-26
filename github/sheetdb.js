@@ -64,8 +64,6 @@ function loadMembers() {
     submitBtn.disabled = !canSubmit;
 }
 
-
-
 async function getInitialData(email) {
     const [groupsRes, membersRes] = await Promise.all([
         fetch(`${SHEETDB_API}?sheet=목장`).then(r => r.json()),
@@ -84,7 +82,7 @@ async function getInitialData(email) {
     const myGroup = groupsRes.find(g => g.목장ID === me.목장ID);
 
     // 3️⃣ 마스터 계정 여부
-    const masterEmails = ["swjddbss@gmail.com", "ysmlsjlove1115@gmail.com"];
+    const masterEmails = ["swjddbss@gmail.com", "ysmlsjlove1115@gmail.com"]; //, "dbsdndwo0224@gmail.com"
     const isMaster = masterEmails.includes(email);
 
     // 4️⃣ 로그인 사용자 정보
@@ -241,3 +239,8 @@ window.addEventListener('DOMContentLoaded', () => {
     sel.addEventListener('change', loadMembers);
     submitBtn.addEventListener('click', submitData);
 });
+
+
+// const SHEET_ID = "18FBUzr_iajDrYuXs78WSX4bntxvIGCd59fRCEqk9iDQ/edit?pli=1&gid=821494766#gid=821494766";
+// const API_KEY = "382344058312-btj96hfuq3665e93evgaguhh14non63j.apps.googleusercontent.com";
+// const RANGE = "목장"; // 시트명!범위 목장!A1:G

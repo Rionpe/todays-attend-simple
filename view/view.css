@@ -1,0 +1,177 @@
+/* =========================
+   기본 세팅
+   ========================= */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    font-size: 16px;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", sans-serif;
+    background: #f5f6f8;
+    color: #222;
+}
+
+/* =========================
+   컨테이너
+   ========================= */
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding-bottom: 2rem;
+}
+
+/* =========================
+   로그인
+   ========================= */
+#loginSection {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* =========================
+   조회 섹션
+   ========================= */
+#viewSection {
+    padding-top: 12px;
+}
+
+/* 제목 */
+#viewSection h2 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    padding: 16px;
+    margin: 0;
+}
+
+/* 목장명 */
+#groupName {
+    padding: 0 16px 12px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* =========================
+   출석 리스트
+   ========================= */
+#attendanceResult {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 16px;
+}
+
+/* =========================
+   카드
+   ========================= */
+.attendance-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow:
+            0 1px 2px rgba(0,0,0,0.04),
+            0 4px 12px rgba(0,0,0,0.08);
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.attendance-card:active {
+    transform: scale(0.98);
+}
+
+/* 카드 헤더 */
+.attendance-card .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+/* 날짜 */
+.attendance-card .date {
+    font-size: 0.85rem;
+    color: #777;
+}
+
+/* 상태 뱃지 */
+.badge {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.badge.attend {
+    background: #e8f3ff;
+    color: #1c6cff;
+}
+
+.badge.absent {
+    background: #fdecea;
+    color: #c62828;
+}
+
+/* =========================
+   리스트 행
+   ========================= */
+.member-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 14px 12px;
+    border-radius: 12px;
+    background: #f9fafb;
+}
+
+.member-row + .member-row {
+    margin-top: 8px;
+}
+
+/* 이름 */
+.member-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+/* 서브 텍스트 */
+.member-sub {
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: #888;
+}
+
+/* 상태 */
+.member-status {
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.member-status.attend {
+    color: #1e8e3e;
+}
+
+.member-status.absent {
+    color: #d93025;
+}
+
+/* =========================
+   데이터 없음
+   ========================= */
+.empty-msg {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 16px;
+    text-align: center;
+    color: #888;
+    box-shadow:
+            0 1px 2px rgba(0,0,0,0.04),
+            0 4px 12px rgba(0,0,0,0.08);
+}

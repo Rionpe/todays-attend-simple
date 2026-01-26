@@ -156,7 +156,7 @@ select {
     font-size: 16px;
     min-height: 44px;
     min-width: 300px;
-    touch-action: none;
+    touch-action: auto;
 }
 
 input, textarea, select {
