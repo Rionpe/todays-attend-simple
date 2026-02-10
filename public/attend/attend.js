@@ -190,7 +190,7 @@ async function submitData() {
     statusMsg.innerText = "데이터 전송 중…";
 
     try {
-        const res = await Common.saveSheetData("출석_원본", records);
+        await Common.saveSheetData("출석_원본", records);
         statusMsg.innerText = "출석 저장 완료! ✅";
         alert("출석 저장 완료! ✅");
 

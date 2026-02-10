@@ -187,7 +187,12 @@ export async function saveSheetData(sheetName, records) {
         body: JSON.stringify({ values })
     });
 
-    return await res.json();
+    const result = await res.json();
+    if (!res.ok) {
+        console.error("API 상세 에러 정보:", result.error);
+        throw new Error(result.error?.message || "데이터 저장 실패");
+    }
+    return result;
 
     // const responses = await Promise.all(
     //     records.map(row =>
