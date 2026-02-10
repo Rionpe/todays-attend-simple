@@ -78,9 +78,16 @@ async function tryAutoLogin(onSuccess) {
     if (savedEmail) {
         console.log("토큰 갱신 시도...");
         tokenClient.requestAccessToken({ prompt: 'none', login_hint: savedEmail });
-    } else {
-        console.log("초기 사용자: 로그인 팝업 실행");
-        tokenClient.requestAccessToken({ prompt: 'select_account' });
+    }
+    console.log("초기 사용자: 로그인 버튼 노출");
+    const loginCon = document.getElementById('loginSection');
+    const loginBtn = document.getElementById('btn-google-login');
+
+    if (loginCon && loginBtn) {
+        loginCon.style.display = 'flex';
+        loginBtn.onclick = () => {
+            tokenClient.requestAccessToken({ prompt: 'select_account' });
+        };
     }
 }
 

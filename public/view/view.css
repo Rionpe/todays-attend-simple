@@ -27,15 +27,6 @@ body {
     padding-bottom: 2rem;
 }
 
-/* =========================
-   로그인
-   ========================= */
-#loginSection {
-    min-height: 70vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 
 /* =========================
    조회 섹션
