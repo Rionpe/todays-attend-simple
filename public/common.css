@@ -1,0 +1,39 @@
+.gsi-material-button {
+    background-color: white;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    box-sizing: border-box;
+    color: #3c4043;
+    cursor: pointer;
+    font-family: 'Google Sans', arial, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    height: 40px;
+    letter-spacing: 0.25px;
+    padding: 0 12px;
+    transition: background-color .2s, box-shadow .2s;
+    display: flex;
+    align-items: center;
+}
+
+.gsi-material-button:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+}
+
+.gsi-material-button-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+}
+
+.gsi-material-button-content-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+#loginSection {
+    flex-direction: column;
+}
