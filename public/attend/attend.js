@@ -1,5 +1,4 @@
-import * as Common from '../common.js';
-
+import * as Common from '../common.js'
 let groups,members,myInfo,sunday;
 
 function loadMembers() {
@@ -38,7 +37,7 @@ function loadMembers() {
 async function getInitialData(email) {
     const [groupsRes, membersRes] = await Promise.all([
         Common.getSheetData("목장", 100),
-        Common.getSheetData("성도", 1000)
+        Common.getSheetData("성도", 1000, {'상태': '활동'})
     ]);
 
     const sundayStr = Common.getWeekSunday();
@@ -191,7 +190,7 @@ async function submitData() {
     statusMsg.innerText = "데이터 전송 중…";
 
     try {
-        await Common.saveSheetData("출석_원본", records);
+        const res = await Common.saveSheetData("출석_원본", records);
         statusMsg.innerText = "출석 저장 완료! ✅";
         alert("출석 저장 완료! ✅");
 
@@ -204,39 +203,8 @@ async function submitData() {
     }
 }
 
-
-
-// async function saveSheetData(sheetName, record) {
-    //
-    // if (!records || !records.length) return;
-    // try {
-    //     for (const record of records) {
-    //         await fetch(`${window.API_ENDPOINT}/v2/sheets/출석_원본`, {
-    //             method: "POST",
-    //             headers: {
-    //                 "Authorization": `Bearer ${window.API_KEY}`,
-    //                 "X-Spreadsheet-Id": window.SHEET_ID,
-    //                 "Content-Type": "application/json"
-    //             },
-    //             body: JSON.stringify(record)
-    //         }).then(res => res.json());
-    //     }
-    //     alert("출석 저장 완료!");
-    //     loadMembers();
-    // } catch (err) {
-    //     console.error("Sheetson 저장 실패:", err);
-    //     alert("출석 저장 실패: " + err);
-    // }
-// }
-
 window.addEventListener("load", () => {
-    const savedEmail = localStorage.getItem("email");
-
-    if (savedEmail) {
-        showSection(savedEmail);
-    } else {
-        Common.initGSI((email) => {
-            showSection(email);
-        });
-    }
+    Common.initGSI((email) => {
+        showSection(email);
+    });
 });

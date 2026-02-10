@@ -1,23 +1,21 @@
 import * as Common from '../common.js';
 
-let myEmail;
-
 /***********************
  * View
  ***********************/
-function showSection() {
+function showSection(email) {
     document.getElementById("loginSection").style.display = "none";
     document.getElementById("viewSection").style.display = "block";
-    loadAttendance();
+    loadAttendance(email);
 }
-async function loadAttendance() {
+async function loadAttendance(email) {
     const sundayStr = Common.getWeekSunday();
 
     const where = {
-        입력자: myEmail
+        입력자: email
     };
 
-    const order = '-입력시간,-날짜';
+    const order = ['날짜 desc', '성도명 asc'];
     const list = await Common.getSheetData("출석_조회(읽기전용)", 20, where, order);
     const filtered = list.filter(l => {
         if (!l.날짜) return false;
@@ -78,14 +76,7 @@ function renderAttendance(list) {
  * 자동 로그인
  ***********************/
 window.addEventListener("load", () => {
-    const savedEmail = localStorage.getItem("email");
-
-    if (savedEmail) {
-        myEmail = savedEmail;
-        showSection();
-    } else {
-        Common.initGSI(() => {
-            showSection();
-        });
-    }
+    Common.initGSI((email) => {
+        showSection(email);
+    });
 });
