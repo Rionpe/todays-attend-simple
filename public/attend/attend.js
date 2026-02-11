@@ -36,6 +36,7 @@ function loadMembers() {
 
 async function getInitialData(email) {
     const [groupsRes, membersRes] = await Promise.all([
+        //GET: Goggle Sheet API(API_KEY) / POST: GAS(나의 권한)
         Common.getSheetData("목장", 100),
         Common.getSheetData("성도", 1000, {'상태': '활동'})
     ]);

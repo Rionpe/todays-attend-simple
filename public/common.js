@@ -1,3 +1,5 @@
+import * as GAS from '/gas/gas.js'
+
 const GOOGLE_SHEET_END_POINT = "https://sheets.googleapis.com/v4/spreadsheets";
 const OAUTH_CLIENT_ID="382344058312-btj96hfuq3665e93evgaguhh14non63j.apps.googleusercontent.com"
 const SHEET_ID="18FBUzr_iajDrYuXs78WSX4bntxvIGCd59fRCEqk9iDQ"
@@ -18,98 +20,119 @@ export function getWeekSunday() {
     return `${yyyy}-${mm}-${dd}`;
 }
 
-let tokenClient;
-let accessToken = null;
+function base64UrlDecode(str) {
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    const pad = str.length % 4;
+    if (pad) {
+        str += '='.repeat(4 - pad);
+    }
+    return atob(str);
+}
+
 export function initGSI(onSuccess) {
-    if (!window.google) {
-        console.error("Google library not loaded");
-        return;
-    }
-    const SCOPES = [
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/userinfo.email',
-        // 'https://www.googleapis.com/auth/userinfo.profile'
-    ].join(' ');
-
-    tokenClient = google.accounts.oauth2.initTokenClient({
+    google.accounts.id.initialize({
         client_id: OAUTH_CLIENT_ID,
-        scope: SCOPES,
-        callback: async (resp) => {
-            if (resp.error) {
-                console.warn("인증 과정에서 에러 발생:", resp.error);
-                return;
-            }
-            accessToken = resp.access_token;
-            const expiryTime = Date.now() + (resp.expires_in * 1000);
-            localStorage.setItem('g_access_token', accessToken);
-            localStorage.setItem('g_token_expiry', expiryTime); //1시간
+        callback: (response) => {
+            const payload = JSON.parse(base64UrlDecode(response.credential.split('.')[1]));
+            const email = payload.email;
 
-            try {
-                const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${accessToken}` }
-                });
-                const profile = await res.json();
-                localStorage.setItem('email', profile.email);
-
-                if (onSuccess) onSuccess(profile.email);
-            } catch (err) {
-                console.error("유저 정보 로드 실패:", err);
-            }
-        }
+            localStorage.setItem('email', email);
+            if (onSuccess) onSuccess(email);
+        },
+        auto_select: true
     });
-    tryAutoLogin(onSuccess);
-}
 
-async function tryAutoLogin(onSuccess) {
-    const savedToken = localStorage.getItem('g_access_token');
-    const expiry = localStorage.getItem('g_token_expiry');
     const savedEmail = localStorage.getItem('email');
-    const now = Date.now();
-
-    // 1. 토큰이 살아있으면 바로 사용
-    if (savedToken && expiry && now < parseInt(expiry)) {
-        console.log("기존 토큰 사용");
-        accessToken = savedToken;
-        onSuccess(savedEmail);
-        return;
-    }
-
-    // 2. 토큰 죽었지만 이메일 기록 있으면 '조용히' 갱신 시도
     if (savedEmail) {
-        console.log("토큰 갱신 시도...");
-        tokenClient.requestAccessToken({ prompt: 'none', login_hint: savedEmail });
+        onSuccess(savedEmail);
+    } else {
+        google.accounts.id.renderButton(
+            document.querySelector(".g_id_signin"),
+            { theme: "outline", size: "large" }
+        );
     }
-    console.log("초기 사용자: 로그인 버튼 노출");
-    const loginCon = document.getElementById('loginSection');
-    const loginBtn = document.getElementById('btn-google-login');
 
-    if (loginCon && loginBtn) {
-        loginCon.style.display = 'flex';
-        loginBtn.onclick = () => {
-            tokenClient.requestAccessToken({ prompt: 'select_account' });
-        };
-    }
+
+    // google.accounts.id.prompt();
 }
 
+// let tokenClient;
+// let accessToken = null;
+// export function initGSI(onSuccess) {
+//     if (!window.google) {
+//         console.error("Google library not loaded");
+//         return;
+//     }
+//     const SCOPES = [
+//         'https://www.googleapis.com/auth/spreadsheets',
+//         'https://www.googleapis.com/auth/userinfo.email',
+//         // 'https://www.googleapis.com/auth/userinfo.profile'
+//     ].join(' ');
+//
+//     tokenClient = google.accounts.oauth2.initTokenClient({
+//         client_id: OAUTH_CLIENT_ID,
+//         scope: SCOPES,
+//         callback: async (resp) => {
+//             if (resp.error) {
+//                 console.warn("인증 과정에서 에러 발생:", resp.error);
+//                 return;
+//             }
+//             accessToken = resp.access_token;
+//             const expiryTime = Date.now() + (resp.expires_in * 1000);
+//             localStorage.setItem('g_access_token', accessToken);
+//             localStorage.setItem('g_token_expiry', expiryTime); //1시간
+//
+//             try {
+//                 const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+//                     headers: { Authorization: `Bearer ${accessToken}` }
+//                 });
+//                 const profile = await res.json();
+//                 localStorage.setItem('email', profile.email);
+//
+//                 if (onSuccess) onSuccess(profile.email);
+//             } catch (err) {
+//                 console.error("유저 정보 로드 실패:", err);
+//             }
+//         }
+//     });
+//     tryAutoLogin(onSuccess);
+// }
+//
+// async function tryAutoLogin(onSuccess) {
+//     const savedToken = localStorage.getItem('g_access_token');
+//     const expiry = localStorage.getItem('g_token_expiry');
+//     const savedEmail = localStorage.getItem('email');
+//     const now = Date.now();
+//
+//     // 1. 토큰이 살아있으면 바로 사용
+//     if (savedToken && expiry && now < parseInt(expiry)) {
+//         console.log("기존 토큰 사용");
+//         accessToken = savedToken;
+//         onSuccess(savedEmail);
+//         return;
+//     }
+//
+//     // 2. 토큰 죽었지만 이메일 기록 있으면 '조용히' 갱신 시도
+//     if (savedEmail) {
+//         console.log("토큰 갱신 시도...");
+//         tokenClient.requestAccessToken({ prompt: 'none', login_hint: savedEmail });
+//     }
+//     console.log("초기 사용자: 로그인 버튼 노출");
+//     const loginCon = document.getElementById('loginSection');
+//     const loginBtn = document.getElementById('btn-google-login');
+//
+//     if (loginCon && loginBtn) {
+//         loginCon.style.display = 'flex';
+//         loginBtn.onclick = () => {
+//             tokenClient.requestAccessToken({ prompt: 'select_account' });
+//         };
+//     }
+// }
+const API_KEY = "AIzaSyAhB1uEX8zjGN64EfGwcevwuEHFYNuWziU"
 export async function getSheetData(sheetName, limit = 1000, where = {}, order = []) {
-    if (!accessToken) {
-        throw new Error("액세스 토큰이 없습니다. 로그인이 필요합니다.");
-    }
-    const url = `${GOOGLE_SHEET_END_POINT}/${SHEET_ID}/values/${encodeURIComponent(sheetName)}!A:Z`;
-    // const params = new URLSearchParams({
-    //     sheetName,
-    //     limit,
-    //     ...(Object.keys(where).length && { where: JSON.stringify(where) }),
-    //     ...(order && { order })
-    //     // _t: Date.now()
-    // });
-    // const url = `${END_POINT}/${SPREADSHEET_ID}?${params.toString()}`
+    const url = `${GOOGLE_SHEET_END_POINT}/${SHEET_ID}/values/${encodeURIComponent(sheetName)}!A:Z?key=${API_KEY}`;
     const res = await fetch(url, {
-        method: "GET",
-        headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-        }
+        method: "GET"
     });
     if (!res.ok) {
         const errorDetail = await res.json();
@@ -169,46 +192,12 @@ export async function getSheetData(sheetName, limit = 1000, where = {}, order = 
 }
 
 export async function saveSheetData(sheetName, records) {
-    if (!accessToken) throw new Error("로그인 필요");
-    if (!records || records.length === 0) return;
-    //헤더순서 먼저 가져옴
-    const headerUrl = `${GOOGLE_SHEET_END_POINT}/${SHEET_ID}/values/${encodeURIComponent(sheetName)}!1:1`;
-    const hRes = await fetch(headerUrl, { headers: { "Authorization": `Bearer ${accessToken}` } });
-    const hJson = await hRes.json();
-    const headers = hJson.values[0];
-    const values = records.map(record => headers.map(header => record[header] || ""));
-    const url = `${GOOGLE_SHEET_END_POINT}/${SHEET_ID}/values/${encodeURIComponent(sheetName)}!A1:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
-    const res = await fetch(url, {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ values })
-    });
-
-    const result = await res.json();
+    const recordArray = Array.isArray(records) ? records : [records];
+    if (recordArray.length === 0) return;
+    const res = await GAS.saveSheetData(sheetName, recordArray);
     if (!res.ok) {
-        console.error("API 상세 에러 정보:", result.error);
-        throw new Error(result.error?.message || "데이터 저장 실패");
+        console.error("API 상세 에러 정보:", res.error);
+        throw new Error(res.error?.message || "데이터 저장 실패");
     }
-    return result;
-
-    // const responses = await Promise.all(
-    //     records.map(row =>
-    //         fetch("/api/sheetson", {
-    //             method: "POST",
-    //             headers: { "Content-Type": "application/json" },
-    //             body: JSON.stringify({ sheetName, record: row })
-    //         })
-    //     )
-    // );
-    //
-    // const failed = responses.find(r => !r.ok);
-    // if (failed) {
-    //     const errorData = await failed.json();
-    //     throw new Error(`Sheetson 저장 실패: ${JSON.stringify(errorData)}`);
-    // }
-    //
-    // return Promise.all(responses.map(r => r.json()));
+    return res;
 }
