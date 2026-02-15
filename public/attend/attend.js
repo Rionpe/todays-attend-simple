@@ -83,7 +83,7 @@ async function initAppWithEmail(email) {
         const data = await getInitialData(email);
         ({ groups, members, myInfo, sunday } = data);
 
-        if (!myInfo) {
+        if (!myInfo && !(myInfo?.isMaster)) {
             alert("등록된 사용자를 찾을 수 없습니다. 관리자에게 문의하세요.");
             return;
         }
