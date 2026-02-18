@@ -1,9 +1,9 @@
 import * as Common from '../common.js'
-let groups,members,myInfo,sunday;
+let groups,members,myInfo,sunday,isMaster,currentUserEmail;
 
 function loadMembers() {
-    if (!myInfo || !members) return;
-
+    if (!isMaster && !myInfo) return;
+    if (!members) return;
     const groupId = document.getElementById("groups").value;
     const submitBtn = document.getElementById("submitBtn");
 
@@ -27,14 +27,11 @@ function loadMembers() {
   <input class="remark" placeholder="비고 (선택)" id="remark_${mem.성도ID}">
 </div>`).join('');
 
-    const canSubmit =
-        myInfo.isMaster ||
-        (myInfo.isLeader && groupId === myInfo.groupId);
-
+    const canSubmit = isMaster || (myInfo && myInfo.isLeader && groupId === myInfo.groupId);
     submitBtn.disabled = !canSubmit;
 }
 
-async function getInitialData(email) {
+async function getInitialData() {
     const [groupsRes, membersRes] = await Promise.all([
         //GET: Goggle Sheet API(API_KEY) / POST: GAS(나의 권한)
         Common.getSheetData("목장", 100),
@@ -43,47 +40,33 @@ async function getInitialData(email) {
 
     const sundayStr = Common.getWeekSunday();
 
-    // 1️⃣ 로그인한 사용자 찾기
-    const me = membersRes.find(m => m.이메일 === email);
-    if (!me) {
-        return {
-            groups: groupsRes,
-            members: membersRes,
-            myInfo: null,
-            sunday: sundayStr
-        };
-    }
-
-    // 2️⃣ 내 목장 정보
-    const myGroup = groupsRes.find(g => g.목장ID === me.목장ID);
-
     // 3️⃣ 마스터 계정
-    const masterEmails = ["swjddbss@gmail.com", "ysmlsjlove1115@gmail.com"]; //, "dbsdndwo0224@gmail.com"
-    const isMaster = masterEmails.includes(email);
+    const masterEmails = ["swjddbss@gmail.com", "ysmlsjlove1115@gmail.com", "dbsdndwo7899@gmail.com"]; //,
+    const isMaster = masterEmails.includes(currentUserEmail);
 
-    // 4️⃣ 로그인 사용자 정보
-    const myInfo = {
+    const me = membersRes.find(m => m.이메일 === currentUserEmail);
+    const myInfo = me ? {
         memberId: me.성도ID,
         groupId: me.목장ID,
-        isLeader: !!myGroup,
-        isMaster,
-        email
-    };
+        isLeader: !!groupsRes.find(g => g.목장ID === me.목장ID),
+        email: currentUserEmail
+    } : null;
 
     return {
         groups: groupsRes,
         members: membersRes,
         myInfo,
+        isMaster,
         sunday: sundayStr
     };
 }
 
-async function initAppWithEmail(email) {
+async function initAppWithEmail() {
     try {
-        const data = await getInitialData(email);
-        ({ groups, members, myInfo, sunday } = data);
+        const data = await getInitialData();
+        ({ groups, members, myInfo, isMaster, sunday } = data);
 
-        if (!myInfo && !(myInfo?.isMaster)) {
+        if (!myInfo && !isMaster) {
             alert("등록된 사용자를 찾을 수 없습니다. 관리자에게 문의하세요.");
             return;
         }
@@ -99,11 +82,8 @@ async function initAppWithEmail(email) {
             sel.appendChild(o);
         });
 
-        if (myInfo.groupId) {
-            sel.value = myInfo.groupId;
-            loadMembers();
-        }
-
+        sel.value = myInfo?.groupId ? myInfo.groupId : groups[0].목장ID;
+        loadMembers();
     } catch (err) {
         console.error(err);
         alert("초기 데이터 로딩 실패: " + err);
@@ -113,7 +93,8 @@ async function initAppWithEmail(email) {
 function showSection(email) {
     document.getElementById("loginSection").style.display = "none";
     document.getElementById("attendanceSection").style.display = "block";
-    initAppWithEmail(email);
+    currentUserEmail = email;
+    initAppWithEmail();
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -130,8 +111,8 @@ window.addEventListener('scroll', () => {
 });
 
 async function submitData() {
-    if (!myInfo || !myInfo.email) {
-        alert("로그인 필요");
+    if (!isMaster && !myInfo) {
+        alert("로그인 권한이 없습니다.");
         return;
     }
 
@@ -140,14 +121,16 @@ async function submitData() {
     const statusMsg = document.getElementById("statusMsg");
     // const logList = document.getElementById("logList");
 
-    if (!myInfo.isMaster && groupId !== myInfo.groupId) {
-        alert("본인 목장 출석만 등록할 수 있습니다.");
-        return;
+    if (!isMaster) {
+        if (!myInfo || groupId !== myInfo.groupId) {
+            alert("본인 목장 출석만 등록할 수 있습니다.");
+            return;
+        }
     }
 
     const records = [];
     const sunday = Common.getWeekSunday();
-    const 입력자 = myInfo.email;
+    const 입력자 = currentUserEmail;
 
     const now = new Date();
     let hours = now.getHours();
